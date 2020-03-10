@@ -49,7 +49,7 @@ public class Controller implements Initializable {
     final String IP_ADDRESS = "localhost";
     final int PORT = 8189;
 
-    FileWriter writer = null;
+    BufferedWriter writer = null;
     String logPath = null;
 
     private boolean authenticated;
@@ -81,8 +81,25 @@ public class Controller implements Initializable {
             } else if (!file.exists()) {
                 System.out.println("Не могу создать новый log-файл " + logPath);
             } else {
-                writer = new FileWriter(logPath, true);
+                loadMessages(file);
             }
+            writer = new BufferedWriter(new FileWriter(file, true));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadMessages(File file) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String string;
+
+            while ((string = reader.readLine()) != null) {
+                textArea.appendText(string);
+                textArea.appendText("\n");
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -154,8 +171,14 @@ public class Controller implements Initializable {
 
                         } else {
                             textArea.appendText(str + "\n");
-                            writer.append(str).append(System.lineSeparator());
-                            writer.flush();
+
+                            try {
+                                writer.write(str);
+                                writer.write(System.lineSeparator());
+                                writer.flush();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 } catch (SocketException e) {
