@@ -15,7 +15,7 @@ public class RegController {
     Controller controller;
 
     public void clickOk(ActionEvent actionEvent) {
-        controller.tryRegistr(loginField.getText(),
+        controller.tryRegister(loginField.getText(),
                 passwordField.getText(), nickField.getText());
     }
 }

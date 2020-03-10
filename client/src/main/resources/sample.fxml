@@ -1,14 +1,11 @@
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.GridPane?>
-
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.ListView?>
+
 <VBox fx:controller="client.Controller"
       xmlns:fx="http://javafx.com/fxml" alignment="center">
 
@@ -17,7 +14,6 @@
         <PasswordField fx:id="passwordField" HBox.hgrow="ALWAYS" promptText="Password" onAction="#tryToAuth"/>
         <Button text="Войти" onAction="#tryToAuth"/>
         <Button text="Регистр" onAction="#registration"/>
-        <Button text="Изменить" onAction="#changeNick"/>
     </HBox>
 
     <HBox VBox.vgrow="ALWAYS">
