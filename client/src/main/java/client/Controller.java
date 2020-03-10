@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -92,10 +93,16 @@ public class Controller implements Initializable {
     private void loadMessages(File file) {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));
+            LinkedList<String> strings = new LinkedList<>();
             String string;
 
             while ((string = reader.readLine()) != null) {
-                textArea.appendText(string);
+                strings.add(string);
+                if (strings.size() > 100) strings.remove(0);
+            }
+
+            for (int i = 0; i < strings.size(); i++) {
+                textArea.appendText(strings.get(i));
                 textArea.appendText("\n");
             }
         } catch (FileNotFoundException e) {
