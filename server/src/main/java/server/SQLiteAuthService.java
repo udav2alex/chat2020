@@ -7,6 +7,7 @@ public class SQLiteAuthService implements AuthService {
     private Connection connection;
     private PreparedStatement registerStatement;
     private PreparedStatement findNicknameByLoginStatement;
+    private PreparedStatement changeNickStatement;
 
     public SQLiteAuthService() {
         try {
@@ -17,6 +18,8 @@ public class SQLiteAuthService implements AuthService {
                     "INSERT INTO users (login, password, nickname) VALUES (?, ?, ?);");
             findNicknameByLoginStatement = connection.prepareStatement(
                     "SELECT nickname FROM users WHERE login = ? AND password = ?;");
+            changeNickStatement = connection.prepareStatement(
+                    "UPDATE users SET nickname = ? WHERE login = ? AND password = ?;");
 
         } catch (ClassNotFoundException e) {
             System.out.println("Не найден класс JDBC-драйвера...");
@@ -57,6 +60,21 @@ public class SQLiteAuthService implements AuthService {
             }
         } catch (SQLException e) {
             System.out.println("Ошибка при регистрации!");
+        }
+        return false;
+    }
+
+    @Override
+    public boolean changeNick(String login, String password, String nickname) {
+        try {
+            changeNickStatement.setString(1, nickname);
+            changeNickStatement.setString(2, login);
+            changeNickStatement.setString(3, password);
+            if (changeNickStatement.executeUpdate() > 0) {
+                return true;
+            }
+        } catch (SQLException e) {
+            System.out.println("Ошибка при изменении имени!");
         }
         return false;
     }

@@ -42,6 +42,28 @@ public class ClientHandler {
                         if (str.equals("/end")) {
                             throw new RuntimeException("сами ");
                         }
+
+                        if (str.equals("/change")) {
+                            String[] token = str.split(" ");
+                            if (token.length != 4) {
+                                continue;
+                            }
+
+                            if(!token[3].equals(server
+                                    .getAuthService()
+                                    .getNicknameByLoginAndPassword(token[1], token[2]))) {
+                                sendMsg("Неправильные логин/проль!");
+                            }
+
+                            if (server.getAuthService().changeNick(token[1], token[2], token[3])) {
+                                sendMsg("Имя " + nick + " изменено на " + token[3] + "!");
+                                nick = token[3];
+                                sendMsg("/authok " + nick);
+                            } else {
+                                sendMsg("Изменить имя не удалось!");
+                            }
+                        }
+
                         if (str.startsWith("/auth ")) {
                             String[] token = str.split(" ");
                             if (token.length < 3) {

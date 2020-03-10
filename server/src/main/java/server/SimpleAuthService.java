@@ -56,4 +56,9 @@ public class SimpleAuthService implements AuthService {
     public void close() {
         System.out.println("Сервер аутентификации закрыт");
     }
+
+    @Override
+    public boolean changeNick(String login, String password, String nickname) {
+        return false;
+    }
 }
