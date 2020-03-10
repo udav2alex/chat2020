@@ -18,12 +18,11 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -42,6 +41,8 @@ public class Controller implements Initializable {
     @FXML
     public ListView clientList;
 
+    private boolean changeNick = false;
+
     Socket socket;
     DataInputStream in;
     DataOutputStream out;
@@ -49,8 +50,12 @@ public class Controller implements Initializable {
     final String IP_ADDRESS = "localhost";
     final int PORT = 8189;
 
+    BufferedWriter writer = null;
+    String logPath = null;
+
     private boolean authenticated;
     private String nickname;
+    private String login;
 
     Stage regStage;
 
@@ -67,6 +72,44 @@ public class Controller implements Initializable {
         }
         textArea.clear();
         setTitle("chat 2020");
+
+        try {
+            logPath = ".\\client\\history_" + getLogin() + ".txt";
+
+            File file = new File(logPath);
+            if (!file.exists() && file.createNewFile()) {
+                System.out.println("Создан новый log-файл " + logPath);
+            } else if (!file.exists()) {
+                System.out.println("Не могу создать новый log-файл " + logPath);
+            } else {
+                loadMessages(file);
+            }
+            writer = new BufferedWriter(new FileWriter(file, true));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadMessages(File file) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            LinkedList<String> strings = new LinkedList<>();
+            String string;
+
+            while ((string = reader.readLine()) != null) {
+                strings.add(string);
+                if (strings.size() > 100) strings.remove(0);
+            }
+
+            for (int i = 0; i < strings.size(); i++) {
+                textArea.appendText(strings.get(i));
+                textArea.appendText("\n");
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -83,6 +126,7 @@ public class Controller implements Initializable {
                         try {
                             out.writeUTF("/end");
                             socket.close();
+                            writer.close();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -134,6 +178,14 @@ public class Controller implements Initializable {
 
                         } else {
                             textArea.appendText(str + "\n");
+
+                            try {
+                                writer.write(str);
+                                writer.write(System.lineSeparator());
+                                writer.flush();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 } catch (SocketException e) {
@@ -145,6 +197,7 @@ public class Controller implements Initializable {
                 } finally {
                     try {
                         socket.close();
+                        writer.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -176,7 +229,7 @@ public class Controller implements Initializable {
 
         try {
             out.writeUTF("/auth " + loginField.getText() + " " + passwordField.getText());
-//            loginField.clear();
+            login = loginField.getText();
             passwordField.clear();
         } catch (IOException e) {
             e.printStackTrace();
@@ -220,8 +273,9 @@ public class Controller implements Initializable {
         return stage;
     }
 
-    public void tryRegistr(String login, String password, String nickname){
-        String msg = String.format("/reg %s %s %s",login, password, nickname );
+    public void tryRegister(String login, String password, String nickname) {
+        changeNick = false;
+        String msg = String.format("/reg %s %s %s", login, password, nickname);
 
         if (socket == null || socket.isClosed()) {
             connect();
@@ -232,5 +286,9 @@ public class Controller implements Initializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getLogin() {
+        return login;
     }
 }
