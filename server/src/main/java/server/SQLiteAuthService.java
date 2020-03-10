@@ -3,7 +3,7 @@ package server;
 import java.sql.*;
 
 public class SQLiteAuthService implements AuthService {
-    private static final String DB_PATH = "jdbc:sqlite:db.sqlite";
+    private static final String DB_PATH = "jdbc:sqlite:server\\db.sqlite";
     private Connection connection;
     private PreparedStatement registerStatement;
     private PreparedStatement findNicknameByLoginStatement;

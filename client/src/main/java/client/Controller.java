@@ -42,6 +42,8 @@ public class Controller implements Initializable {
     @FXML
     public ListView clientList;
 
+    private boolean changeNick = false;
+
     Socket socket;
     DataInputStream in;
     DataOutputStream out;
@@ -221,6 +223,7 @@ public class Controller implements Initializable {
     }
 
     public void tryRegistr(String login, String password, String nickname){
+        changeNick = false;
         String msg = String.format("/reg %s %s %s",login, password, nickname );
 
         if (socket == null || socket.isClosed()) {
@@ -232,5 +235,9 @@ public class Controller implements Initializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void changeNick(ActionEvent actionEvent) {
+        changeNick = true;
     }
 }
