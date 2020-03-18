@@ -4,20 +4,28 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Server {
     private Vector<ClientHandler> clients;
+    private ExecutorService executorService;
     private AuthService authService;
 
     public AuthService getAuthService() {
         return authService;
     }
 
+    public ExecutorService getExecutorService() {
+        return executorService;
+    }
+
     public Server() {
         clients = new Vector<>();
+        executorService = Executors.newCachedThreadPool();
         authService = new SQLiteAuthService();
         ServerSocket server = null;
-        Socket socket = null;
+        Socket socket;
 
         try {
             server = new ServerSocket(8189);
@@ -32,6 +40,7 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            executorService.shutdown();
             try {
                 authService.close();
                 server.close();

@@ -51,7 +51,8 @@ public class Controller implements Initializable {
     final int PORT = 8189;
 
     BufferedWriter writer = null;
-    String logPath = null;
+    String logDir = ".\\client\\history";
+    String logNamePattern = logDir + "\\history_%s.txt";
 
     private boolean authenticated;
     private String nickname;
@@ -74,9 +75,16 @@ public class Controller implements Initializable {
         setTitle("chat 2020");
 
         try {
-            logPath = ".\\client\\history_" + getLogin() + ".txt";
+            File dir = new File(logDir);
+            if (!dir.exists() && dir.mkdirs()) {
+                System.out.println("Создана папка для истории переписки!");
+            } else if (!dir.exists()) {
+                System.out.println("Не могу создать папку для истории переписки!");
+            }
 
+            String logPath = String.format(logNamePattern, getLogin());
             File file = new File(logPath);
+
             if (!file.exists() && file.createNewFile()) {
                 System.out.println("Создан новый log-файл " + logPath);
             } else if (!file.exists()) {
@@ -105,8 +113,6 @@ public class Controller implements Initializable {
                 textArea.appendText(strings.get(i));
                 textArea.appendText("\n");
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
