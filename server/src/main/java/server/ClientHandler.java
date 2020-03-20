@@ -5,19 +5,22 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.logging.Logger;
 
 public class ClientHandler {
-    Socket socket = null;
-    DataInputStream in;
-    DataOutputStream out;
-    Server server;
+    private Socket socket = null;
+    private DataInputStream in;
+    private DataOutputStream out;
+    private Server server;
+    private Logger logger;
     private String nick;
     private String login;
 
-    public ClientHandler(Socket socket, Server server) {
+    ClientHandler(Socket socket, Server server, Logger logger) {
         try {
             this.socket = socket;
             this.server = server;
+            this.logger = logger;
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
 
@@ -33,9 +36,9 @@ public class ClientHandler {
                                     .getAuthService()
                                     .registration(token[1], token[2], token[3]);
                             if (b) {
-                                sendMsg("Регистрация прошла успешно");
+                                sendLoggedMsg("Регистрация " + token[1] + " прошла успешно");
                             } else {
-                                sendMsg("Пользователь не может быть зарегистрирован");
+                                sendLoggedMsg("Пользователь " + token[1] + " не может быть зарегистрирован");
                             }
                         }
 
@@ -52,15 +55,15 @@ public class ClientHandler {
                             if(!token[3].equals(server
                                     .getAuthService()
                                     .getNicknameByLoginAndPassword(token[1], token[2]))) {
-                                sendMsg("Неправильные логин/проль!");
+                                sendLoggedMsg("Неправильные логин(" + token[1] + ")/проль!");
                             }
 
                             if (server.getAuthService().changeNick(token[1], token[2], token[3])) {
-                                sendMsg("Имя " + nick + " изменено на " + token[3] + "!");
+                                sendLoggedMsg("Имя " + nick + " изменено на " + token[3] + "!");
                                 nick = token[3];
-                                sendMsg("/authok " + nick);
+                                sendLoggedMsg("/authok " + nick);
                             } else {
-                                sendMsg("Изменить имя не удалось!");
+                                sendLoggedMsg("Изменить имя " + nick + " не удалось!");
                             }
                         }
 
@@ -75,17 +78,16 @@ public class ClientHandler {
                             if (newNick != null) {
                                 login = token[1];
                                 if (!server.isLoginAuthorized(login)) {
-                                    sendMsg("/authok " + newNick);
+                                    sendLoggedMsg("/authok " + newNick);
                                     nick = newNick;
                                     server.subscribe(this);
-                                    System.out.println("Клиент " + nick + " подключился");
                                     socket.setSoTimeout(0);
                                     break;
                                 } else {
-                                    sendMsg("С этим логином уже авторизовались");
+                                    sendLoggedMsg("С логином " + login + " уже авторизовались");
                                 }
                             } else {
-                                sendMsg("Неверный логин / пароль");
+                                sendLoggedMsg("Неверный логин(" + token[1] + ") / пароль");
                             }
                         }
                     }
@@ -112,34 +114,39 @@ public class ClientHandler {
 
                     }
                 }catch (SocketTimeoutException e){
-                    System.out.println("Клиент отключился по таймауту");
+                    logger.fine("Клиент отключился по таймауту");
                 } catch (RuntimeException e) {
-                    System.out.println("сами вызвали исключение.");
+                    logger.fine("Сами вызвали исключение...");
                 } catch (IOException e) {
-                    e.printStackTrace();
+//                    e.printStackTrace();
+                    logger.severe(e.getMessage());
                 } finally {
                     server.unsubscribe(this);
                     try {
                         in.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+//                        e.printStackTrace();
+                        logger.severe(e.getMessage());
                     }
                     try {
                         out.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+//                        e.printStackTrace();
+                        logger.severe(e.getMessage());
                     }
                     try {
                         socket.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+//                        e.printStackTrace();
+                        logger.severe(e.getMessage());
                     }
-                    System.out.println("Клиент отключился");
+                    logger.fine("Клиент отключился");
                 }
             }));
 
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+            logger.severe(e.getMessage());
         }
     }
 
@@ -147,7 +154,18 @@ public class ClientHandler {
         try {
             out.writeUTF(msg);
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+            logger.severe(e.getMessage());
+        }
+    }
+
+    private void sendLoggedMsg(String msg) {
+        try {
+            out.writeUTF(msg);
+            logger.info(msg);
+        } catch (IOException e) {
+//            e.printStackTrace();
+            logger.severe(e.getMessage());
         }
     }
 
